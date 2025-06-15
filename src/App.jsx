@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Search from './components/search.jsx';
+import Search from './components/Search.jsx';
 
 
 const App = () => {
