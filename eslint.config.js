@@ -3,7 +3,14 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
+// Removed CommonJS export; using only ES module export below.
+
 export default [
+  {env: {
+    browser: true,
+    es2020: true,
+    node: true,
+  }},
   { ignores: ['dist'] },
   {
     files: ['**/*.{js,jsx}'],
