@@ -6,7 +6,7 @@ import MovieCard from './components/MovieCard.jsx';
 
 // API
 const API_BASE_URL = 'https://api.themoviedb.org/3';
-const API_KEY      = import.meta.env.VITE_TMDB_API_KEY;      // v3 key
+const API_KEY      = import.meta.env.VITE_TMDB_API_KEY;
 const POPULAR_URL  = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc&api_key=${API_KEY}`;
 const API_OPTIONS = {
   method: 'GET',
@@ -23,11 +23,15 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
+
       try {
-        const endpoint = POPULAR_URL;
+        const endpoint = query
+          ?
+          `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&sort_by=popularity.desc&api_key=${API_KEY}`
+          : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
         const response = await fetch(endpoint, API_OPTIONS);
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -48,8 +52,8 @@ const App = () => {
     };
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    fetchMovies(searchTerm);
+  }, [searchTerm]);
 
   return (
       <main>
