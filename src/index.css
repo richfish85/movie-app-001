@@ -8,7 +8,7 @@
 
   --color-light-100: #cecefb;
   --color-light-200: #a8b5db;
-
+  
   --color-gray-100: #9ca4ab;
 
   --color-dark-100: #0f0d23;
@@ -49,8 +49,9 @@
 }
 
 @layer components {
-  .pattern {
-    @apply bg-hero-pattern w-full h-screen bg-center bg-cover absolute z-0;
+  .bg_cover {
+    @apply absolute inset-0 bg-gradient-to-b from-gray-900 to-teal-950 z-0
+    /* @apply bg-hero-pattern w-full h-screen bg-center bg-cover absolute z-0; */
   }
 
   .wrapper {
