@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Spinner from '../components/Spinner.jsx';
 
+
 const MovieDetails = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
@@ -63,7 +64,7 @@ const MovieDetails = () => {
           <div className="space-y-3">
             <h2>{movie.title}</h2>
             <div className="rating">
-              <img src="star.svg" alt="Star Icon" />
+              <img src="/star.svg" alt="Star Icon" />
               <p>{movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</p>
             </div>
             <p className="text-gray-100">Release Date: {movie.release_date || 'N/A'}</p>
