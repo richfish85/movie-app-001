@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import Search from './components/Search.jsx';
 import Spinner from './components/Spinner.jsx';
 import MovieCard from './components/MovieCard.jsx';
-
+import { useDebounce } from 'react-use';
 
 // API
-const API_BASE_URL = 'https://api.themoviedb.org/3';
-const API_KEY      = import.meta.env.VITE_TMDB_API_KEY;
-const POPULAR_URL  = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
-const API_OPTIONS = {
-  method: 'GET',
-  headers: {
-    accept: 'application/json',
-    Authorization: `Bearer ${API_KEY}`,
-  },
-};
+// const API_BASE_URL = 'https://api.themoviedb.org/3';
+// const API_KEY      = import.meta.env.VITE_TMDB_API_KEY;
+// const POPULAR_URL  = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+// const API_OPTIONS = {
+//   method: 'GET',
+//   headers: {
+//     accept: 'application/json',
+//     Authorization: `Bearer ${API_KEY}`,
+//   },
+// };
 
 // App Component
 const App = () => {
@@ -22,16 +22,21 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   
+  useDebounce(() => {
+    setDebouncedSearchTerm(searchTerm);
+  }, 500, [searchTerm]);
+
   const fetchMovies = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
 
       try {
         const endpoint = query
-          ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&sort_by=popularity.desc`
-          : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
-        const response = await fetch(endpoint, API_OPTIONS);
+          ? `/api/tmdb?endpoint=search/movie?query=${encodeURIComponent(query)}&sort_by=popularity.desc`
+          : `/api/tmdb?endpoint=discover/movie?sort_by=popularity.desc`
+        const response = await fetch(endpoint);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

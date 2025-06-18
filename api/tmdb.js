@@ -1,4 +1,3 @@
-/* eslint-env node */
 export default async function handler(req, res) {
   const { endpoint, query } = req.query;
 
@@ -13,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   const tmdbUrl = new URL(`https://api.themoviedb.org/3/${endpoint}`);
-  tmdbUrl.searchParams.set('api_key', TMDB_API_KEY);
+//   tmdbUrl.searchParams.set('api_key', TMDB_API_KEY);
 
   // Append extra query params from frontend
   if (query) {
@@ -24,7 +23,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(tmdbUrl.toString());
+    const response = await fetch(tmdbUrl.toString(), {
+    headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${TMDB_API_KEY}`,
+    }
+});
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (err) {
