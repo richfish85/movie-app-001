@@ -56,10 +56,25 @@ const Home = () => {
       const res = await fetch('/api/tmdb?endpoint=movie/top_rated');
       const data = await res.json();
       if (res.ok) {
-        setPopularMovies(data.results.slice(0, 10));
-
+        const topMovies = data.results.slice(0, 10);
         const actorMap = new Map();
-        for (const movie of data.results.slice(0, 20)) {
+
+        for (const movie of topMovies) {
+          const credRes = await fetch(`/api/tmdb?endpoint=movie/${movie.id}/credits`);
+          const credData = await credRes.json();
+          if (credRes.ok) {
+            movie.topActors = credData.cast.slice(0, 2).map((a) => a.name);
+            credData.cast.slice(0, 5).forEach((a) => {
+              if (!actorMap.has(a.id)) {
+                actorMap.set(a.id, { ...a, topMovies: [] });
+              }
+            });
+          } else {
+            movie.topActors = [];
+          }
+        }
+
+        for (const movie of data.results.slice(10, 20)) {
           const credRes = await fetch(`/api/tmdb?endpoint=movie/${movie.id}/credits`);
           const credData = await credRes.json();
           if (credRes.ok) {
@@ -84,6 +99,7 @@ const Home = () => {
         }
 
         setActors(actorsArr);
+        setPopularMovies(topMovies);
       }
     } catch (err) {
       console.error('Error fetching popular movies:', err);
@@ -132,8 +148,16 @@ const Home = () => {
                   src={m.poster_path ? `https://image.tmdb.org/t/p/w185/${m.poster_path}` : '/no-movie.png'}
                   alt={m.title}
                 />
-                <div className="ml-3">
-                  <p>{m.title}</p>
+                <div className="ml-3 space-y-1">
+                  <h3>{m.title}</h3>
+                  {m.topActors && m.topActors.length > 0 && (
+                    <p className="text-sm text-gray-100">
+                      {m.topActors.slice(0, 2).join(', ')}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-100">
+                    {m.release_date}
+                  </p>
                   <div className="rating">
                     <img src="star.svg" alt="star" />
                     <p>{m.vote_average.toFixed(1)}</p>
