@@ -169,6 +169,10 @@
       @apply flex items-center gap-2;
     }
 
+    & li.items-start {
+      @apply items-start;
+    }
+
     & img {
       @apply w-10 h-14 object-cover rounded;
     }

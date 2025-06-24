@@ -59,16 +59,31 @@ const Home = () => {
         setPopularMovies(data.results.slice(0, 10));
 
         const actorMap = new Map();
-        for (const movie of data.results.slice(0, 5)) {
+        for (const movie of data.results.slice(0, 20)) {
           const credRes = await fetch(`/api/tmdb?endpoint=movie/${movie.id}/credits`);
           const credData = await credRes.json();
           if (credRes.ok) {
             credData.cast.slice(0, 5).forEach((a) => {
-              if (!actorMap.has(a.id)) actorMap.set(a.id, a);
+              if (!actorMap.has(a.id)) {
+                actorMap.set(a.id, { ...a, topMovies: [] });
+              }
             });
           }
         }
-        setActors(Array.from(actorMap.values()));
+
+        const actorsArr = Array.from(actorMap.values());
+        for (const actor of actorsArr) {
+          const creditsRes = await fetch(`/api/tmdb?endpoint=person/${actor.id}/movie_credits`);
+          const creditsData = await creditsRes.json();
+          if (creditsRes.ok) {
+            actor.topMovies = creditsData.cast
+              .sort((a, b) => b.popularity - a.popularity)
+              .slice(0, 3)
+              .map((m) => m.title);
+          }
+        }
+
+        setActors(actorsArr);
       }
     } catch (err) {
       console.error('Error fetching popular movies:', err);
@@ -134,12 +149,21 @@ const Home = () => {
             <h3 className="font-bold">Top Actors</h3>
             <ul>
               {actors.map((actor) => (
-                <li key={actor.id}>
+                <li key={actor.id} className="items-start">
                   <img
                     src={actor.profile_path ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}` : '/no-movie.png'}
                     alt={actor.name}
                   />
-                  <span>{actor.name}</span>
+                  <div>
+                    <span>{actor.name}</span>
+                    {actor.topMovies && (
+                      <ul className="ml-4 list-disc list-inside text-sm text-gray-100">
+                        {actor.topMovies.map((m) => (
+                          <li key={m}>{m}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
