@@ -66,11 +66,15 @@
     }
 
     & ul li {
-      @apply min-w-[230px] flex flex-row items-center;
+      @apply min-w-[230px] flex flex-row items-start;
+    }
+
+    & ul li h3 {
+      @apply text-white font-bold text-base;
     }
 
     & ul li p {
-      @apply fancy-text mt-[22px] text-nowrap;
+      @apply text-sm text-gray-100;
     }
 
     & ul li img {
