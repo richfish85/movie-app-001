@@ -3,6 +3,7 @@ import Search from '../components/Search.jsx';
 import Spinner from '../components/Spinner.jsx';
 import MovieCard from '../components/MovieCard.jsx';
 import { useDebounce } from 'react-use';
+import { updateSearchCount } from '../appwrite.js';
 
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +14,7 @@ const Home = () => {
 
   useDebounce(() => {
     setDebouncedSearchTerm(searchTerm);
-  }, 500, [searchTerm]);
+  }, 1000, [searchTerm]);
 
   const fetchMovies = async (query = '') => {
     setIsLoading(true);
@@ -21,19 +22,23 @@ const Home = () => {
 
     try {
       const endpoint = query
-        ? `/api/tmdb?endpoint=search/movie?query=${encodeURIComponent(query)}&sort_by=popularity.desc`
-        : `/api/tmdb?endpoint=discover/movie?sort_by=popularity.desc`;
+        ? `/api/tmdb?endpoint=search/movie&query=${encodeURIComponent(query)}&sort_by=popularity.desc`
+        : `/api/tmdb?endpoint=discover/movie&sort_by=popularity.desc`;
       const response = await fetch(endpoint);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      if (data.Response === 'False') {
-        setErrorMessage(data.Error || 'Failed to fetch movies');
+      if (!response.ok || data.success === false) {
+        setErrorMessage(data.status_message || 'Failed to fetch movies');
         setMovieList([]);
         return;
       }
       setMovieList(data.results || []);
+
+      if( query && data.results && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (errorMessage) {
       console.error(`Error fetching movies: ${errorMessage}`);
       setErrorMessage('Failed to fetch movies. Please try again later.');
