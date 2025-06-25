@@ -74,7 +74,7 @@ const Home = () => {
     <main>
         {/* hero + search */}
 
-      <header className="relative isolate flex min-h-[60vh] w-full flex-col items-center justify-center px-4 text-center">
+      <header className="relative isolate flex min-h-[60vh] w-full flex-col items-center justify-center px-1 text-center">
         {/* full-bleed background image */}
         <img
           src="./hero.webp"
@@ -92,17 +92,19 @@ const Home = () => {
 
         </header>
       <div className="wrapper">
+        {/* marquee */}
+        <TrendingStrip className="my-2 text-white" />
+
+        {/* search bar */}
           <Search
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             searchType={searchType}
             setSearchType={setSearchType}
           />
-        {/* marquee */}
-        <TrendingStrip className="my-8 text-white" />
 
         {/* three-column grid */}
-        <div className="mt-10 grid md:grid-cols-12 gap-6">
+        <div className="mt-5 grid md:grid-cols-12 gap-2">
           <TopActors  className="sidebar md:col-span-3 lg:col-span-2" />
 
           <section className="md:col-span-6 lg:col-span-8 all-movies">

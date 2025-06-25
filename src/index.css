@@ -40,7 +40,7 @@
   }
 
   header {
-    @apply sm:mt-10 mt-5;
+    @apply sm:mt-10 mt-1;
   }
 
 }
@@ -48,14 +48,13 @@
 @layer components {
 
   .wrapper {
-    @apply px-5 py-12 xs:p-10 max-w-7xl mx-auto flex flex-col relative z-10;
+    @apply px-2 py-1 xs:p-10 max-w-fit mx-auto flex flex-col relative z-10;
   }
 
   .trending {
-    @apply mt-20;
 
     & ul {
-      @apply flex flex-row overflow-y-auto gap-5 -mt-10 w-full hide-scrollbar;
+      @apply flex flex-row overflow-y-auto gap-1 mt-5 w-full hide-scrollbar;
     }
 
     & ul li {
@@ -71,7 +70,7 @@
     }
 
     & ul li img {
-      @apply w-[127px] h-[163px] rounded-lg object-cover -ml-3.5;
+      @apply w-[127px] h-[163px] rounded-lg object-cover;
     }
 
     & ul li .rating {
@@ -88,7 +87,7 @@
   }
 
   .search {
-    @apply w-full bg-light-100/5 px-4 py-3 rounded-lg mt-10 max-w-3xl mx-auto;
+    @apply w-full bg-light-100/5 px-4 py-3 rounded-lg mt-2 max-w-3xl mx-auto;
 
     & div {
       @apply relative flex items-center;
@@ -116,10 +115,10 @@
   }
 
   .movie-card {
-    @apply bg-dark-100 p-5 rounded-2xl shadow-inner shadow-light-100/10;
+    @apply bg-dark-100 p-5;
 
     & img {
-      @apply rounded-lg h-auto w-full;
+      @apply w-full;
     }
 
     & h3 {
@@ -127,7 +126,7 @@
     }
 
     & .content {
-      @apply mt-2 flex flex-row items-center flex-wrap gap-2;
+      @apply mt-2 flex flex-row flex-wrap;
     }
 
     & .rating {
@@ -171,7 +170,7 @@
     }
 
     & img {
-      @apply w-10 h-14 object-cover rounded;
+      @apply object-cover;
     }
 
     & .rating {
