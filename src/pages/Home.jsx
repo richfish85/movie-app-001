@@ -1,231 +1,130 @@
 import { useState, useEffect } from 'react';
-import Search from '../components/Search.jsx';
-import Spinner from '../components/Spinner.jsx';
-import MovieCard from '../components/MovieCard.jsx';
-import { useDebounce } from 'react-use';
+import { useDebounceValue }   from 'usehooks-ts';
+
+import Search      from '../components/Search.jsx';
+import Spinner     from '../components/Spinner.jsx';
+import MovieCard   from '../components/MovieCard.jsx';
+
+import TrendingStrip from '../features/TrendingStrip';
+import TopActors      from '../features/TopActors';
+import PopularTv      from '../features/PopularTV';
+
 import { updateSearchCount } from '../appwrite.js';
 
 const Home = () => {
+  /* ——— search-related state only ——— */
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('movie');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [movieList, setMovieList] = useState([]);
-  const [popularMovies, setPopularMovies] = useState([]);
-  const [actors, setActors] = useState([]);
-  const [popularTv, setPopularTv] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [movieList,  setMovieList]  = useState([]);
+  const [isLoading,  setIsLoading]  = useState(false);
+  const [errorMsg,   setErrorMsg]   = useState('');
+  const withTimeout = (p, ms = 3000) =>
+  Promise.race([
+    p,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), ms)
+    ),
+  ]);
 
-  useDebounce(() => {
-    setDebouncedSearchTerm(searchTerm);
-  }, 1000, [searchTerm]);
+  const [debouncedTerm] = useDebounceValue(searchTerm, 1000);
 
-  const fetchMovies = async (query = '') => {
-    setIsLoading(true);
-    setErrorMessage('');
-
-    try {
-    const endpoint = query
-      ? `/api/tmdb?endpoint=search/${searchType}&query=${encodeURIComponent(query)}&sort_by=popularity.desc`
-      : `/api/tmdb?endpoint=discover/${searchType}&sort_by=popularity.desc`;
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      if (!response.ok || data.success === false) {
-        setErrorMessage(data.status_message || 'Failed to fetch movies');
-        setMovieList([]);
-        return;
-      }
-      setMovieList(data.results || []);
-
-      if (searchType === 'movie' && query && data.results && data.results.length > 0) {
-        await updateSearchCount(query, data.results[0]);
-      }
-    } catch (errorMessage) {
-      console.error(`Error fetching movies: ${errorMessage}`);
-      setErrorMessage('Failed to fetch movies. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchPopularMovies = async () => {
-    try {
-      const res = await fetch('/api/tmdb?endpoint=movie/top_rated');
-      const data = await res.json();
-      if (res.ok) {
-        const topMovies = data.results.slice(0, 10);
-        const actorMap = new Map();
-
-        for (const movie of topMovies) {
-          const credRes = await fetch(`/api/tmdb?endpoint=movie/${movie.id}/credits`);
-          const credData = await credRes.json();
-          if (credRes.ok) {
-            movie.topActors = credData.cast.slice(0, 2).map((a) => a.name);
-            credData.cast.slice(0, 5).forEach((a) => {
-              if (!actorMap.has(a.id)) {
-                actorMap.set(a.id, { ...a, topMovies: [] });
-              }
-            });
-          } else {
-            movie.topActors = [];
-          }
-        }
-
-        for (const movie of data.results.slice(10, 20)) {
-          const credRes = await fetch(`/api/tmdb?endpoint=movie/${movie.id}/credits`);
-          const credData = await credRes.json();
-          if (credRes.ok) {
-            credData.cast.slice(0, 5).forEach((a) => {
-              if (!actorMap.has(a.id)) {
-                actorMap.set(a.id, { ...a, topMovies: [] });
-              }
-            });
-          }
-        }
-
-        const actorsArr = Array.from(actorMap.values());
-        for (const actor of actorsArr) {
-          const creditsRes = await fetch(`/api/tmdb?endpoint=person/${actor.id}/movie_credits`);
-          const creditsData = await creditsRes.json();
-          if (creditsRes.ok) {
-            actor.topMovies = creditsData.cast
-              .sort((a, b) => b.popularity - a.popularity)
-              .slice(0, 3)
-              .map((m) => m.title);
-          }
-        }
-
-        setActors(actorsArr);
-        setPopularMovies(topMovies);
-      }
-    } catch (err) {
-      console.error('Error fetching popular movies:', err);
-    }
-  };
-
-  const fetchPopularTv = async () => {
-    try {
-      const res = await fetch('/api/tmdb?endpoint=tv/top_rated');
-      const data = await res.json();
-      if (res.ok) setPopularTv(data.results.slice(0, 10));
-    } catch (err) {
-      console.error('Error fetching popular tv shows:', err);
-    }
-  };
-
+  /* ——— fetch search results ——— */
   useEffect(() => {
-    fetchMovies(debouncedSearchTerm);
-  }, [debouncedSearchTerm, searchType]);
+    const fetchMovies = async () => {
+      setIsLoading(true);
+      setErrorMsg('');
 
-  useEffect(() => {
-    fetchPopularMovies();
-    fetchPopularTv();
-  }, []);
+      const endpoint = debouncedTerm
+        ? `/api/tmdb?endpoint=search/${searchType}&query=${encodeURIComponent(
+            debouncedTerm
+          )}&sort_by=popularity.desc`
+        : `/api/tmdb?endpoint=discover/${searchType}&sort_by=popularity.desc`;
 
+      try {
+        const res  = await fetch(endpoint);
+        const data = await res.json();
+
+        if (!res.ok || data.success === false) {
+          throw new Error(data.status_message || 'Fetch failed');
+        }
+
+        setMovieList(data.results || []);
+
+        /* optional analytics */
+        if (
+          searchType === 'movie' &&
+          debouncedTerm &&
+          data.results?.length > 0
+        ) {
+          updateSearchCount(debouncedTerm, data.results[0]).catch(console.error);
+        }
+      } catch (err) {
+        console.error(err);
+        setErrorMsg('Failed to fetch movies. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, [debouncedTerm, searchType]);
+
+  /* ——— render ——— */
   return (
     <main>
-      <div className='bg_cover' />
-      <div className='wrapper'>
-        <header>
-          <img src="./hero.png" alt="Hero Banner" />
-          <h1>Find <span className="text-gradient">Movies</span> You LOVE!</h1>
+        {/* hero + search */}
+
+      <header className="relative isolate flex min-h-[60vh] w-full flex-col items-center justify-center px-4 text-center">
+        {/* full-bleed background image */}
+        <img
+          src="./hero.webp"
+          alt="Film festival red carpet"
+          className="absolute inset-0 -z-10 h-full w-full object-cover"
+       />
+        {/* subtle dark overlay for readability */}
+       <div className="absolute inset-0 -z-10 bg-black/40" />
+
+        {/* <h1 className="mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
+         Find&nbsp;
+          <span className="text-gradient">TV shows&nbsp;&&nbsp;Movies</span>
+          &nbsp;you&nbsp;LOVE&nbsp;!
+        </h1> */}
+
+        </header>
+      <div className="wrapper">
           <Search
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             searchType={searchType}
             setSearchType={setSearchType}
           />
-        </header>
-        <section className="trending">
-          <h2 className="mb-5">Popular Movies</h2>
-          <ul>
-            {popularMovies.map((m) => (
-              <li key={m.id}>
-                <img
-                  src={m.poster_path ? `https://image.tmdb.org/t/p/w185/${m.poster_path}` : '/no-movie.png'}
-                  alt={m.title}
-                />
-                <div className="ml-3 space-y-1">
-                  <h3>{m.title}</h3>
-                  {m.topActors && m.topActors.length > 0 && (
-                    <p className="text-sm text-gray-100">
-                      {m.topActors.slice(0, 2).join(', ')}
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-100">
-                    {m.release_date}
-                  </p>
-                  <div className="rating">
-                    <img src="star.svg" alt="star" />
-                    <p>{m.vote_average.toFixed(1)}</p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        {/* marquee */}
+        <TrendingStrip className="my-8 text-white" />
 
+        {/* three-column grid */}
         <div className="mt-10 grid md:grid-cols-12 gap-6">
-          <aside className="sidebar md:col-span-3 lg:col-span-2">
-            <h3 className="font-bold">Top Actors</h3>
-            <ul>
-              {actors.map((actor) => (
-                <li key={actor.id} className="items-start">
-                  <img
-                    src={actor.profile_path ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}` : '/no-movie.png'}
-                    alt={actor.name}
-                  />
-                  <div>
-                    <span>{actor.name}</span>
-                    {actor.topMovies && (
-                      <ul className="ml-4 list-disc list-inside text-sm text-gray-100">
-                        {actor.topMovies.map((m) => (
-                          <li key={m}>{m}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </aside>
+          <TopActors  className="sidebar md:col-span-3 lg:col-span-2" />
 
           <section className="md:col-span-6 lg:col-span-8 all-movies">
-            <h2 className="mt-[40px]">All {searchType === 'movie' ? 'Movies' : 'TV Shows'}</h2>
+            <h2 className="mb-6">
+              All {searchType === 'movie' ? 'Movies' : 'TV Shows'}
+            </h2>
+
             {isLoading ? (
               <Spinner />
-            ) : errorMessage ? (
-              <p className="text-red-500">{errorMessage}</p>
+            ) : errorMsg ? (
+              <p className="text-red-500">{errorMsg}</p>
             ) : (
-              <ul>
-                {movieList.map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} />
+              <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                {movieList.map((m) => (
+                  <MovieCard key={m.id} movie={m} />
                 ))}
+                
               </ul>
             )}
           </section>
 
-          <aside className="sidebar md:col-span-3 lg:col-span-2">
-            <h3 className="font-bold">Popular TV Shows</h3>
-            <ul>
-              {popularTv.map((tv) => (
-                <li key={tv.id}>
-                  <img
-                    src={tv.poster_path ? `https://image.tmdb.org/t/p/w185/${tv.poster_path}` : '/no-movie.png'}
-                    alt={tv.name}
-                  />
-                  <span>{tv.name}</span>
-                  <div className="rating">
-                    <img src="star.svg" alt="star" />
-                    <p>{tv.vote_average.toFixed(1)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </aside>
+          <PopularTv className="sidebar md:col-span-3 lg:col-span-2" />
         </div>
       </div>
     </main>

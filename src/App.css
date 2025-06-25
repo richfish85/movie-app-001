@@ -40,3 +40,21 @@
 .read-the-docs {
   color: #888;
 }
+
+
+/* Trending Strip Styles */
+.trending-strip {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.trending-strip ul {
+  display: inline-flex;
+  animation: marquee 35s linear infinite;
+}
+.trending-strip:hover ul {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  0%   { transform: translateX(0);   }
+  100% { transform: translateX(-50%); } /* duplicate list to loop cleanly */
+}

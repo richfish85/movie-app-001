@@ -4,27 +4,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #030014;
+  --color-primary: #0B0A11;
 
-  --color-light-100: #cecefb;
-  --color-light-200: #a8b5db;
+  --color-light-100: #FFEEDD;
+  --color-light-200: #FFBCA6;
   
-  --color-gray-100: #9ca4ab;
+  --color-gray-100: #A6A6B6;
 
-  --color-dark-100: #0f0d23;
+  --color-dark-100: #1B1A24;
 
   --font-dm-sans: DM Sans, sans-serif;
 
   --breakpoint-xs: 480px;
 
-  --background-image-hero-pattern: url("/hero-bg.png");
+  /* --background-image-hero-pattern: url("/hero-bg.png"); */
 }
 
 @layer base {
   body {
     font-family: "DM Sans", serif;
     font-optical-sizing: auto;
-    background: #030014;
+    background: var(--color-primary);
   }
 
   h1 {
@@ -43,16 +43,9 @@
     @apply sm:mt-10 mt-5;
   }
 
-  header img {
-    @apply w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md;
-  }
 }
 
 @layer components {
-  .bg_cover {
-    /* @apply absolute inset-0 bg-gradient-to-b from-gray-900 to-teal-950 z-0 */
-    @apply bg-hero-pattern w-full h-screen bg-center bg-cover absolute z-0;
-  }
 
   .wrapper {
     @apply px-5 py-12 xs:p-10 max-w-7xl mx-auto flex flex-col relative z-10;
@@ -196,7 +189,7 @@
 }
 
 @utility text-gradient {
-  @apply bg-linear-to-r from-[#D6C7FF] to-[#AB8BFF] bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#FF944D] via-[#FF5E78] to-[#FFA17A] bg-clip-text text-transparent;
 }
 
 @utility fancy-text {
