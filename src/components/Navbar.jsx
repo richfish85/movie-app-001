@@ -43,6 +43,7 @@ const Navbar = ({
         setSearchTerm={setSearchTerm}
         searchType={searchType}
         setSearchType={setSearchType}
+        country={country}
       />
       <select
         value={country}
@@ -63,6 +64,7 @@ const Navbar = ({
       <select
         className="bg-dark-100 border border-gray-100 rounded-md py-2 px-2"
         onChange={() => setSearchType('person')}
+        disabled={!country}
       >
         <option>People</option>
         <option>Actors</option>
@@ -75,6 +77,7 @@ const Navbar = ({
         value={movieGenre}
         onChange={(e) => setMovieGenre(e.target.value)}
         className="bg-dark-100 border border-gray-100 rounded-md py-2 px-2"
+        disabled={!country}
       >
         <option value="">Movies</option>
         {movieGenres.map((g) => (
@@ -87,6 +90,7 @@ const Navbar = ({
         value={tvGenre}
         onChange={(e) => setTvGenre(e.target.value)}
         className="bg-dark-100 border border-gray-100 rounded-md py-2 px-2"
+        disabled={!country}
       >
         <option value="">TV Shows</option>
         {tvGenres.map((g) => (
