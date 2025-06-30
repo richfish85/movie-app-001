@@ -22,7 +22,7 @@ const tvGenres = [
 const Navbar = () => (
   <nav className="bg-dark-100 text-gray-200 py-3 px-4 flex items-center justify-between">
     <div className="flex items-center gap-2">
-      <img src="/clapper.svg" alt="logo" className="w-6 h-6" />
+      <img src="/reel_logo.png" alt="logo" className="w-6 h-6" />
       <span className="text-white font-bold text-xl">The Reel Deal</span>
     </div>
     <div className="flex items-center gap-2 flex-wrap">
