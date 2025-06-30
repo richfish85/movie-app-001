@@ -3,20 +3,20 @@ import { useEffect, useState } from 'react';
 /**
  * Sidebar widget for the ten highest-rated TV shows.
  */
-export default function PopularTv({ className = '' }) {
+export default function PopularTv({ className = '', country }) {
   const [shows, setShows] = useState([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const res  = await fetch('/api/tmdb?endpoint=tv/top_rated');
+        const res = await fetch(`/api/tmdb?endpoint=tv/top_rated${country ? `&region=${country}` : ''}`);
         const data = await res.json();
         if (res.ok) setShows(data.results.slice(0, 10));
       } catch (err) {
         console.error('Popular-TV fetch failed:', err);
       }
     })();
-  }, []);
+  }, [country]);
 
   if (!shows.length) return null;
 

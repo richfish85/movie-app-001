@@ -11,14 +11,15 @@ import Marquee from 'react-fast-marquee';
  * ─────
  * className?  — extra Tailwind / CSS classes injected by the parent.
  */
-export default function TrendingStrip({ className = '' }) {
+export default function TrendingStrip({ className = '', country }) {
   const [movies, setMovies]   = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const res  = await fetch('/api/tmdb?endpoint=movie/top_rated');
+        const url = `/api/tmdb?endpoint=movie/top_rated${country ? `&region=${country}` : ''}`;
+        const res = await fetch(url);
         const data = await res.json();
         if (res.ok) setMovies(data.results.slice(0, 20));
       } catch (err) {
@@ -27,7 +28,7 @@ export default function TrendingStrip({ className = '' }) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [country]);
 
   if (loading || !movies.length) return null;  // 👈 skeleton component would go here
 

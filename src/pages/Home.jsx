@@ -1,23 +1,38 @@
 import { useState, useEffect } from 'react';
-import { useDebounceValue }   from 'usehooks-ts';
+import { useDebounceValue } from 'usehooks-ts';
 
-import Search      from '../components/Search.jsx';
-import Spinner     from '../components/Spinner.jsx';
+import Spinner from '../components/Spinner.jsx';
 import MovieCard   from '../components/MovieCard.jsx';
 
 import TrendingStrip from '../features/TrendingStrip';
-import TopActors      from '../features/TopActors';
-import PopularTv      from '../features/PopularTV';
+import TopActors from '../features/TopActors';
+import PopularTv from '../features/PopularTV';
 
 import { updateSearchCount } from '../appwrite.js';
 
-const Home = () => {
-  /* ——— search-related state only ——— */
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState('movie');
-  const [movieList,  setMovieList]  = useState([]);
-  const [isLoading,  setIsLoading]  = useState(false);
-  const [errorMsg,   setErrorMsg]   = useState('');
+const movieGenreIds = {
+  Action: 28,
+  Comedy: 35,
+  Drama: 18,
+  Fantasy: 14,
+  Horror: 27,
+  Romance: 10749,
+  'Sci-Fi': 878,
+};
+
+const tvGenreIds = {
+  Drama: 18,
+  Comedy: 35,
+  Documentary: 99,
+  Reality: 10764,
+  'Sci-Fi': 10765,
+  Kids: 10762,
+};
+
+const Home = ({ searchTerm, searchType, country, movieGenre, tvGenre }) => {
+  const [movieList, setMovieList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const withTimeout = (p, ms = 3000) =>
   Promise.race([
     p,
@@ -34,11 +49,24 @@ const Home = () => {
       setIsLoading(true);
       setErrorMsg('');
 
-      const endpoint = debouncedTerm
-        ? `/api/tmdb?endpoint=search/${searchType}&query=${encodeURIComponent(
+      const endpoint = (() => {
+        if (debouncedTerm) {
+          const base = `/api/tmdb?endpoint=search/${searchType}&query=${encodeURIComponent(
             debouncedTerm
-          )}&sort_by=popularity.desc`
-        : `/api/tmdb?endpoint=discover/${searchType}&sort_by=popularity.desc`;
+          )}`;
+          return country ? `${base}&region=${country}` : base;
+        }
+
+        if (searchType === 'person') {
+          return `/api/tmdb?endpoint=person/popular${country ? `&region=${country}` : ''}`;
+        }
+
+        let base = `/api/tmdb?endpoint=discover/${searchType}&sort_by=popularity.desc`;
+        if (country) base += `&with_origin_country=${country}`;
+        if (searchType === 'movie' && movieGenre) base += `&with_genres=${movieGenreIds[movieGenre]}`;
+        if (searchType === 'tv' && tvGenre) base += `&with_genres=${tvGenreIds[tvGenre]}`;
+        return base;
+      })();
 
       try {
         const res  = await fetch(endpoint);
@@ -67,7 +95,7 @@ const Home = () => {
     };
 
     fetchMovies();
-  }, [debouncedTerm, searchType]);
+  }, [debouncedTerm, searchType, country, movieGenre, tvGenre]);
 
   /* ——— render ——— */
   return (
@@ -93,19 +121,11 @@ const Home = () => {
         </header>
       <div className="wrapper">
         {/* marquee */}
-        <TrendingStrip className="my-2 text-white" />
-
-        {/* search bar */}
-          <Search
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            searchType={searchType}
-            setSearchType={setSearchType}
-          />
+        <TrendingStrip className="my-2 text-white" country={country} />
 
         {/* three-column grid */}
         <div className="mt-5 grid md:grid-cols-12 gap-2">
-          <TopActors  className="sidebar md:col-span-3 lg:col-span-2" />
+          <TopActors className="sidebar md:col-span-3 lg:col-span-2" country={country} />
 
           <section className="md:col-span-6 lg:col-span-8 all-movies">
             <h2 className="mb-6">
@@ -126,7 +146,7 @@ const Home = () => {
             )}
           </section>
 
-          <PopularTv className="sidebar md:col-span-3 lg:col-span-2" />
+          <PopularTv className="sidebar md:col-span-3 lg:col-span-2" country={country} />
         </div>
       </div>
     </main>
