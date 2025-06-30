@@ -18,6 +18,7 @@ const Search = ({ searchTerm, setSearchTerm, searchType, setSearchType }) => {
         >
           <option value="movie">Movie</option>
           <option value="tv">TV</option>
+          <option value="person">People</option>
         </select>
       </div>
     </div>

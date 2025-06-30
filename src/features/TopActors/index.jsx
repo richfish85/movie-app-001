@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react';
  * most-known movies.  Runs a couple of TMDB calls in parallel,
  * then renders a bulleted list.
  */
-export default function TopActors({ className = '' }) {
+export default function TopActors({ className = '', country }) {
   const [actors, setActors] = useState([]);
 
   useEffect(() => {
     (async () => {
       try {
         // 1️⃣ Grab popular actors
-        const pRes  = await fetch('/api/tmdb?endpoint=person/popular');
+        const pRes = await fetch(`/api/tmdb?endpoint=person/popular${country ? `&region=${country}` : ''}`);
         const pData = await pRes.json();
         const top10 = pData.results.slice(0, 10);
 
@@ -37,7 +37,7 @@ export default function TopActors({ className = '' }) {
         console.error('Top-actor fetch failed:', err);
       }
     })();
-  }, []);
+  }, [country]);
 
   if (!actors.length) return null;
 
