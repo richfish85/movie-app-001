@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Search = ({ searchTerm, setSearchTerm, searchType, setSearchType, country }) => {
+const Search = ({ searchTerm, setSearchTerm, searchType, country })=> {
   return (
     <div className="search">
       <div>
@@ -11,16 +11,6 @@ const Search = ({ searchTerm, setSearchTerm, searchType, setSearchType, country 
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search through thousands of movies..."
         />
-        <select
-          value={searchType}
-          onChange={(e) => setSearchType(e.target.value)}
-          className="ml-2 bg-dark-100 border border-gray-100 rounded-md text-gray-200 py-2 px-2"
-          disabled={!country}
-        >
-          <option value="movie">Movie</option>
-          <option value="tv">TV</option>
-          <option value="person">People</option>
-        </select>
       </div>
     </div>
   );
